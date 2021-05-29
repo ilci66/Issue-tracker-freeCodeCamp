@@ -12,10 +12,58 @@ module.exports = function (app) {
 //all the issues with this url /api/issues/{projectname}
 //you need to be able to filter /api/issues/{project}?open=false
 //with any given field and value, 
-//done filtering with find methods but aggregate will 
-//work better for this, and looks way more cleaner
-//got "inspired" by some guy on youtube "after" solving it to be honest
-      let project = req.params.project;
+
+//make an array include the search criteria if it exists      
+
+      let { project } = req.params;
+      //console.log(req.params.open)
+      const {
+        _id,
+        open,
+        issue_title,
+        issue_text,
+        created_by,
+        assigned_to,
+        status_text
+      } = req.query;
+
+      // let queryToMatch = [{$match: {name: project}},{$unwind:"$issues"}];
+
+      // if(_id != undefined){
+      //   queryToMatch.push({"_id": _id})
+      // }
+      // if(open != undefined){
+      //   console.log(open, "its")
+      //   queryToMatch.push({"open": open})
+      // }
+      // if(issue_title != undefined){
+      //   queryToMatch.push({"issue_title": issue_title})
+      // }
+      // if(issue_text != undefined){
+      //   queryToMatch.push({"issue_text": issue_text})
+      // }
+      // if(created_by != undefined){
+      //   queryToMatch.push({"created_by": created_by})
+      // }
+      // if(assigned_to != undefined){
+      //   queryToMatch.push({"assigned_to": assigned_to})
+      // }
+      // if(status_text != undefined){
+      //   queryToMatch.push({"status_text": status_text})
+      // }
+      // console.log(queryToMatch)
+      // res.json("works")
+
+      // Project.aggregate([$match:queryToMatch], (err, data) => {
+      //   //console.log(data)
+      //   res.json(data)
+      // })
+
+      // Project.findOne({name: project}, (err, data) => {
+        //console.log(data)
+        // res.json(data.issues.map(ele => ele))
+      // })
+
       
     })
     
