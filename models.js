@@ -4,13 +4,13 @@ const { Schema } = mongoose;
 
 const issueSchema = new Schema({
   assigned_to: String,
-  open: { type: Boolean, default: true },
+  // open: { type: Boolean, default: true },
+  open: Boolean,
   issue_title: {type: String, required: true},
   issue_text: {type: String, required: true},
   created_on: Date,
   updated_on: Date,
   created_by: {type: String, required: true},
-  // open: Boolean,
   status_text: String
 });
 

@@ -26,42 +26,162 @@ module.exports = function (app) {
         status_text,
       } = req.query;
 
-      
+//boolean value of open somehow messes it up, even though it returns 
+//the given query result, somehow doesn't work for neither query nor 
+//filtering after getting the data
+//for loop looked awful
       Project.findOne({name:project}, (err, data) => {
-        // res.send((data.issues))
-        // res.send(data.issues)
- //boolean value of open somehow messes it up, even though it returns 
- //the given query result, somehow doesn't work for neither query nor 
- //filtering after getting the data
-        console.log(open)
         let foundIssues = data.issues;
-        // console.log(foundIssues)
         let responseArray = [];
+        let arrayForFiltering = [];
 
-        foundIssues.map(ele => {
-          console.log(open)
-          if(open && ele.open == true){
-            responseArray.push(ele)
-          }if(!open && ele.open == false){
-            negativeRes.push(ele)
+        if(open != undefined){
+          if(responseArray.length == 0){
+            foundIssues.map(ele => {
+              // console.log(ele.open.toString() == open.toString())
+              if(ele.open.toString() == open.toString()){
+                responseArray.push(ele)
+              }
+            })
+          }else if(responseArray.length != 0){
+            responseArray.map(ele => {
+              if(ele.open.toString() == open.toString()){
+                arrayForFiltering.push(ele)
+              }
+            })
+            responseArray = arrayForFiltering;
           }
-        })
-        console.log(open,"here")
-        if(open){res.json(responseArray)}
-        else if(!open){res.json("false")}
+        }
 
+        if(_id != undefined){
+          if(responseArray.length == 0){
+            foundIssues.map(ele => {
+              if(ele._id == issue_tit_idle){
+                responseArray.push(ele)
+              }
+            })
+          }else if(responseArray.length != 0){
+            responseArray.map(ele => {
+              if(ele._id == _id){
+                arrayForFiltering.push(ele)
+              }
+            })
+            responseArray = arrayForFiltering;
+          }
+        }
+
+        if(issue_title != undefined){
+          if(responseArray.length == 0){
+            foundIssues.map(ele => {
+              if(ele.issue_title == issue_title){
+                responseArray.push(ele)
+              }
+            })
+          }else if(responseArray.length != 0){
+            responseArray.map(ele => {
+              if(ele.issue_title == issue_title){
+                arrayForFiltering.push(ele)
+              }
+            })
+            responseArray = arrayForFiltering;
+          }
+        }
+
+        if(issue_text != undefined){
+          if(responseArray.length == 0){
+            foundIssues.map(ele => {
+              if(ele.issue_text == issue_text){
+                responseArray.push(ele)
+              }
+            })
+          }else if(responseArray.length != 0){
+            responseArray.map(ele => {
+              if(ele.issue_text == issue_text){
+                arrayForFiltering.push(ele)
+              }
+            })
+            responseArray = arrayForFiltering;
+          }
+        }
+
+        if(created_by != undefined){
+          if(responseArray.length == 0){
+            foundIssues.map(ele => {
+              if(ele.created_by == created_by){
+                responseArray.push(ele)
+              }
+            })
+          }else if(responseArray.length != 0){
+            responseArray.map(ele => {
+              if(ele.created_by == created_by){
+                arrayForFiltering.push(ele)
+              }
+            })
+            responseArray = arrayForFiltering;
+          }
+        }
+        if(assigned_to != undefined){
+          if(responseArray.length == 0){
+            foundIssues.map(ele => {
+              if(ele.assigned_to == assigned_to){
+                responseArray.push(ele)
+              }
+            })
+          }else if(responseArray.length != 0){
+            responseArray.map(ele => {
+              if(ele.assigned_to == assigned_to){
+                arrayForFiltering.push(ele)
+              }
+            })
+            responseArray = arrayForFiltering;
+          }
+        }
+
+        if(status_text != undefined){
+          if(responseArray.length == 0){
+            foundIssues.map(ele => {
+              if(ele.status_text == status_text){
+                responseArray.push(ele)
+              }
+            })
+          }else if(responseArray.length != 0){
+            responseArray.map(ele => {
+              if(ele.status_text == status_text){
+                arrayForFiltering.push(ele)
+              }
+            })
+            responseArray = arrayForFiltering;
+          }
+        }
+        let tempArray = []
+        if(open != undefined || _id != undefined || issue_title != undefined ||issue_text != undefined || created_by != undefined || assigned_to != undefined || status_text != undefined){
+          
+          for(let i = 0; i < responseArray.length; i++){
+            if(tempArray.indexOf(responseArray[i]) < 0){
+              tempArray.push(responseArray[i])
+            }
+          }
+          responseArray = tempArray
+          res.json(responseArray)
+        } else {
+          res.json(data.issues)
+        }
       })
 
 
 //saw the exact code work in another video, the exact query
 //when I add open=true (or any query really) returns an empty array
+
+        
+      // if(open != undefined) {
+      //   open = open.toString();
+      // }
       // let queryToMatch = [{$match: {name: project}},{$unwind:"$issues"}];
 
       // if(_id != undefined){
       //   queryToMatch.push({$match: {"_id": _id}})
       // }
       // if(open != undefined){
-      //   console.log(open, "its")
       //   queryToMatch.push({$match: {"open": open}})
       // }
       // if(issue_title != undefined){
@@ -80,7 +200,7 @@ module.exports = function (app) {
       //   queryToMatch.push({$match:{"status_text": status_text}})
       // }
       // console.log(queryToMatch)
-      // res.json("works")
+      // // res.json("works")
 
       // Project.aggregate(queryToMatch, (err, data) => {
       //   //console.log(data)
@@ -95,34 +215,34 @@ module.exports = function (app) {
   //     saw this one on youtube too, 
   //     ran into the same issue 
   //     if(open){console.log("open")}
-
-  //     Project.aggregate([
-  //       {$match: { name: project } },
-  //       // {$unwind: "$issues" },
-  //       _id != undefined
-  //       ? {$match :{"issues._id":ObjectId(_id)}}
-  //       : {$match: {} },
-  //       open !=undefined
-  //       ? {$match: {"issues.open": open}} 
-  //       : {$match: {} },
-  //       issue_title != undefined
-  //       ? {$match: {"issues.issue_title": issue_title}}
-  //       : {$match: {} },
-  //       created_by != undefined
-  //       ? {$match: {"issues.created_by": created_by}}
-  //       : {$match: {} },
-  //       assigned_to != undefined
-  //       ? {$match: {"issues.assigned_to": assigned_to}}
-  //       : {$match: {} },
-  //       status_text != undefined
-  //       ? {$match: {"issues.status_text": status_text}}
-  //       : {$match: {} },
-  //     ]).exec((err, data) => {
-  //       console.log(data[0].issues)
-  //         let mappedData = []
-  //         data[0].issues.map(ele => mappedData.push(ele))
-  //         res.json(mappedData);
-  //     })
+      
+      // Project.aggregate([
+      //   {$match: { name: project } },
+      //   {$unwind: "$issues" },
+      //   _id != undefined
+      //   ? {$match :{"issues._id":ObjectId(_id)}}
+      //   : {$match: {} },
+      //   open !=undefined
+      //   ? {$match: {"issues.open": open}} 
+      //   : {$match: {} },
+      //   issue_title != undefined
+      //   ? {$match: {"issues.issue_title": issue_title}}
+      //   : {$match: {} },
+      //   created_by != undefined
+      //   ? {$match: {"issues.created_by": created_by}}
+      //   : {$match: {} },
+      //   assigned_to != undefined
+      //   ? {$match: {"issues.assigned_to": assigned_to}}
+      //   : {$match: {} },
+      //   status_text != undefined
+      //   ? {$match: {"issues.status_text": status_text}}
+      //   : {$match: {} },
+      // ]).exec((err, data) => {
+      //   console.log(data.status_text)
+      //     let mappedData = []
+      //     // data.issues.map(ele => mappedData.push(ele))
+      //     res.json(data);
+      // })
       
     })
     .post(function (req, res){
