@@ -2,13 +2,15 @@
 const mongoose = require("mongoose");
 const {Issue} = require("../models.js");
 const {Project} = require("../models.js")
-
+//necerssary for selecting id don't forget
+const { ObjectId } = mongoose.Types
 
 module.exports = function (app) {
 
   app.route('/api/issues/:project')
   
     .get(function (req, res){
+      //console.log(typeof req.query.open)
       let { project } = req.params;
       //console.log(req.params.open)
       let {
@@ -22,65 +24,78 @@ module.exports = function (app) {
       } = req.query;
       let foundIssues = []
 
-      if(open != undefined || _id != undefined|| issue_title != undefined|| issue_text != undefined|| created_by != undefined|| assigned_to != undefined|| status_text != undefined){
-        Project.findOne({name: project}, (err, data) => {
-          foundIssues = data.issues;
-          if(open != undefined){
-            foundIssues = foundIssues.filter(ele => open.toString() == ele.open.toString())
-          }
-          if(_id != undefined){
-            foundIssues = foundIssues.filter(ele => _id == ele._id)
-          }
-          if(issue_title != undefined){
-            foundIssues = foundIssues.filter(ele => issue_title == ele.issue_title)
-          }
-          if(issue_text != undefined){
-            foundIssues = foundIssues.filter(ele => issue_text == ele.issue_text)
-          }
-          if(created_by != undefined){
-            foundIssues = foundIssues.filter(ele => created_by == ele.created_by)
-          }
-          if(assigned_to != undefined){
-            foundIssues = foundIssues.filter(ele => assigned_to == ele.assigned_to)
-          }
-          if(status_text != undefined){
-            foundIssues = foundIssues.filter(ele => status_text == ele.status_text)
-          }
-        res.json(foundIssues)
-        })
-      }else{
-        Project.findOne({name: project}, (err, data) => {
-          res.json(data.issues)
-        })
+      // if(open != undefined || _id != undefined|| issue_title != undefined|| issue_text != undefined|| created_by != undefined|| assigned_to != undefined|| status_text != undefined){
+      //   Project.findOne({name: project}, (err, data) => {
+      //     foundIssues = data.issues;
+      //     if(open != undefined){
+      //       foundIssues = foundIssues.filter(ele => open == ele.open.toString())
+      //     }
+      //     if(_id != undefined){
+      //       foundIssues = foundIssues.filter(ele => _id == ele._id)
+      //     }
+      //     if(issue_title != undefined){
+      //       foundIssues = foundIssues.filter(ele => issue_title == ele.issue_title)
+      //     }
+      //     if(issue_text != undefined){
+      //       foundIssues = foundIssues.filter(ele => issue_text == ele.issue_text)
+      //     }
+      //     if(created_by != undefined){
+      //       foundIssues = foundIssues.filter(ele => created_by == ele.created_by)
+      //     }
+      //     if(assigned_to != undefined){
+      //       foundIssues = foundIssues.filter(ele => assigned_to == ele.assigned_to)
+      //     }
+      //     if(status_text != undefined){
+      //       foundIssues = foundIssues.filter(ele => status_text == ele.status_text)
+      //     }
+      //   res.json(foundIssues)
+      //   })
+      // }else{
+      //   Project.findOne({name: project}, (err, data) => {
+      //     res.json(data.issues)
+      //   })
+      // }
+//open, from queries, comes as a string fix that first 
+      // console.log(typeof open)
+      if(open){
+        if(open == "false"){ open = false }
+        else if(open == "true"){ open = true }
       }
-//open doesn't work when it's a boolean, no idea why, tried many different approaches
-      // Project.aggregate([
-      //   {$match: { name: project } },
-      //   {$unwind: "$issues" },
-      //   _id != undefined
-      //   ? {$match :{"issues._id":ObjectId(_id)}}
-      //   : {$match: {} },
-      //   open !=undefined
-      //   ? {$match: {"issues.open"$eq:{open}}} 
-      //   : {$match: {} },
-      //   issue_title != undefined
-      //   ? {$match: {"issues.issue_title": issue_title}}
-      //   : {$match: {} },
-      //   created_by != undefined
-      //   ? {$match: {"issues.created_by": created_by}}
-      //   : {$match: {} },
-      //   assigned_to != undefined
-      //   ? {$match: {"issues.assigned_to": assigned_to}}
-      //   : {$match: {} },
-      //   status_text != undefined
-      //   ? {$match: {"issues.status_text": status_text}}
-      //   : {$match: {} },
-      // ]).exec((err, data) => {
-      //   console.log(data.status_text)
-      //     let mappedData = []
-      //     data.issues.map(ele => mappedData.push(ele))
-      //     res.json(mappedData);
-      // })
+      // console.log(typeof open)
+
+      Project.aggregate([
+        {$match: { name: project } },
+        {$unwind: "$issues" },
+        _id != undefined
+//it didn't slect the object id, did a google search, someone suggested using
+//ObjectId() method, required by mongoose I guess, otherwise I keep getting errors 
+        // ? {$match :{"issues._id":mongoose.Types.ObjectId(_id)}}
+        ? {$match :{"issues._id":ObjectId(_id)}}
+        : {$match: {} },
+        open !=undefined
+        ? {$match: {"issues.open":open}} 
+        : {$match: {} },
+        issue_title != undefined
+        ? {$match: {"issues.issue_title": issue_title}}
+        : {$match: {} },
+        created_by != undefined
+        ? {$match: {"issues.created_by": created_by}}
+        : {$match: {} },
+        assigned_to != undefined
+        ? {$match: {"issues.assigned_to": assigned_to}}
+        : {$match: {} },
+        status_text != undefined
+        ? {$match: {"issues.status_text": status_text}}
+        : {$match: {} },
+        issue_text != undefined
+        ? {$match: {"issues.status_text": issue_text}}
+        : {$match: {} },
+      ]).exec((err, data) => {
+        console.log(data.status_text)
+          let mappedData = []
+          mappedData = data.map(ele => ele.issues)
+          res.json(mappedData);
+      })
     })
 
     .post(function (req, res){
@@ -92,9 +107,12 @@ module.exports = function (app) {
         issue_text,
         created_by,
       } = req.body;
+      
 // if(issue_title==""||issue_text==""||created_by=="")
+//don't forget the "return" otherwise we're sending multiple headers
+//and causing an error 
       if(!issue_title||!issue_text||!created_by){
-        res.send({ error: 'required field(s) missing' })
+        return res.send({ error: 'required field(s) missing' })
       };
 
     //create an issue, don't forget to add dates(create and update)
