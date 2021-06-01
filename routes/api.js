@@ -91,7 +91,7 @@ module.exports = function (app) {
         ? {$match: {"issues.status_text": issue_text}}
         : {$match: {} },
       ]).exec((err, data) => {
-        console.log(data.status_text)
+        // console.log(data.status_text)
           let mappedData = []
           mappedData = data.map(ele => ele.issues)
           res.json(mappedData);
@@ -168,15 +168,100 @@ module.exports = function (app) {
         assigned_to,
         status_text,
       } = req.body;
-      console.log(open)
-      res.json("this be put")
+
+      // console.log(typeof open)
+      if(open){
+        if(open == "false"){ open = false }
+        else if(open == "true"){ open = true }
+      }
+      // res.json("this be put")
       //find the issue by id inside given project first 
-      
+      if(!_id){
+        res.json({ error: 'missing _id' })
+        return;
+      };
+      // { error: 'could not update', '_id': _id }
+      if(_id){
+        if(!open & !issue_title & !issue_text & !created_by & !assigned_to & !status_text){
+          res.json({ error: 'no update field(s) sent', '_id': _id })
+          return;
+        } else{
+          //if you use find you gonna get an array even if result's just one object
+          Project.findOne({name: project}, (err, data) => {
+            if(err || !data){
+              res.json({ error: 'could not update', '_id': _id })
+              return;
+            }else if(data != undefined){
+              // console.log(data.issues)
+//Instead of the long code I wrote, I can just use this .id() I saw this on some guide
+//it matches inside the array, so clean 
+              let issueToUpdate = data.issues.id(_id);
+              if(!issueToUpdate){
+                res.json({ error: 'could not update', '_id': _id })
+                return;
+              }else{
+                if(issue_title){issueToUpdate.issue_title = issue_title}
+                if(issue_text){issueToUpdate.issue_text = issue_text}
+                if(created_by){issueToUpdate.created_by = created_by}
+                if(assigned_to){issueToUpdate.assigned_to = assigned_to}
+                if(status_text){issueToUpdate.status_text = status_text}
+                if(issue_title){issueToUpdate.issue_title = issue_title}
+                issueToUpdate.updated_on =  new Date()
+                if(open){issueToUpdate.open = open}
+                data.save((err, data) => {
+                  if(err || !data){
+                    res.json({ error: 'could not update', '_id': _id })
+                    return; 
+                  }else{
+                    res.json({  result: 'successfully updated', '_id': _id })
+                    return;
+                  }
+                })
+              }
+              // res.json(issueToUpdate)
+            }
+          })
+        }
+        
+      }
+      // {  result: 'successfully updated', '_id': _id }
     })
     
     .delete(function (req, res){
       let project = req.params.project;
-      res.json("delete")
+//If no _id is sent, the return value is { error: 'missing _id' }.
+// On success, the return value is { result: 'successfully deleted', '_id': _id }.
+// On failure, the return value is { error: 'could not delete', '_id': _id }.
+      const {_id} = req.body;
+      if(!_id){
+        res.json({ error: 'missing _id' });
+        return;
+      }
+      Project.findOne({name:project}, (err, data) => {
+        if(err || !data){
+          res.json({ error: 'could not delete', '_id': _id })
+          return;
+        }else{
+          let issueToRemove = data.issues.id(_id);
+          // res.json(issueToRemove)
+          if(!issueToRemove){
+            res.json({ error: 'could not delete', '_id': _id })
+            return;
+          }
+          console.log(issueToRemove)
+          issueToRemove.remove();
+          data.save((err, newData) => {
+            if(err){
+              res.json({ error: 'could not delete', '_id': _id })
+              return;
+            }else{
+              res.json({ result: 'successfully deleted', '_id': _id })
+              return;
+            }
+          })
+        }
+      })
+      // res.json("delete")
     });
     
 };
