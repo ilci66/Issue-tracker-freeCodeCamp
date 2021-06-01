@@ -10,7 +10,6 @@ module.exports = function (app) {
   app.route('/api/issues/:project')
   
     .get(function (req, res){
-      //console.log(typeof req.query.open)
       let { project } = req.params;
       //console.log(req.params.open)
       let {
@@ -96,6 +95,8 @@ module.exports = function (app) {
           mappedData = data.map(ele => ele.issues)
           res.json(mappedData);
       })
+      console.log(res)
+
     })
 
     .post(function (req, res){
